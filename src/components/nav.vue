@@ -13,8 +13,11 @@
 			<div title="任务管理" :class="active==2?'l la':'l'" data-value="2" @click="lactive($event)">
 				<Icon type="md-ionic" size="30" data-value="2" @click="lactive($event)" />
 			</div>
-			<div title="项目组管理" :class="active==3?'l la':'l'" data-value="3" @click="lactive($event)">
-				<Icon type="ios-people" size="30" data-value="3" @click="lactive($event)" />
+			<div title="任务修改记录" :class="active==3?'l la':'l'" data-value="3" @click="lactive($event)">
+				<Icon type="md-bookmarks" size="30" data-value="3" @click="lactive($event)" />
+			</div>
+			<div title="项目组管理" :class="active==4?'l la':'l'" data-value="4" @click="lactive($event)">
+				<Icon type="ios-people" size="30" data-value="4" @click="lactive($event)" />
 			</div>
 		</div>
 	</div>

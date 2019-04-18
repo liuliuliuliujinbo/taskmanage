@@ -73,6 +73,32 @@ router.post('/grouplist',(req,res)=>{
 })
 
 
+//获取某用户的任务组列表
+router.post('/mygroup',(req,res)=>{
+	var data=req.body;
+    GroupModel.find({leader:data.user}).sort({_id: -1})
+    .then((doc)=>{
+        res.send({err:0,msg:'查询成功',data:doc});
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+})
+
+
+//获取指定任务组成员
+router.post('/getmembers',(req,res)=>{
+	var data=req.body;
+    GroupModel.find({name:data.group})
+    .then((doc)=>{
+        res.send({err:0,msg:'查询成功',data:doc});
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+})
+
+
 //删除任务组
 router.post('/deletegroup',(req,res)=>{
 	var data=req.body;

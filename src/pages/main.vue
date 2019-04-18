@@ -3,7 +3,7 @@
 		<Nav></Nav>
 		<Gzt v-if="active==1"></Gzt>
 		<Rw v-if="active==2"></Rw>
-		<Rwz v-if="active==3"></Rwz>
+		<Rwz v-if="active==4"></Rwz>
 	</div>
 </template>
 
@@ -22,6 +22,12 @@
 		},
 		methods:{
 			
+		},
+		mounted(){
+			if(sessionStorage.getItem("user")==""||sessionStorage.getItem("user")==null){
+				alert("请先登录 ")
+				this.$router.push({name:"login",params:{}})
+			}
 		},
 		computed:{
 			active(){

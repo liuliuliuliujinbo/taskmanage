@@ -10,11 +10,10 @@
 		<div class="logini">
 			<br /><br />
 			用户名：<Input prefix="ios-contact" placeholder="用户名/手机号" v-model="username" style="width: 200px" />
-			<br /><br />
+			<br /><br /><br />
 			密&nbsp;&nbsp;码&nbsp;：<Input prefix="ios-lock" type="password" v-model="password" placeholder="密码" style="width: 200px" />
 			<br /><br />
-			验证码：
-			<br /><br />
+			<br />
 			<ButtonGroup>
 				<Button style="width: 135px;height: 30px;font-size: 16px;" type="primary" @click="goreg">注&emsp;册</Button>
 				<Button style="width: 135px;height: 30px;font-size: 16px;" type="primary" @click="go">登&emsp;录</Button>
@@ -46,9 +45,9 @@
 				this.$axios.post('http://127.0.0.1:2080/user/login',data)
 				.then(function(res){
 					if(res.data.err==0){
-						window.localStorage.setItem("email",res.data.data[0].email);
-						window.localStorage.setItem("user",res.data.data[0].name);
-						window.localStorage.setItem("role",res.data.data[0].role);
+						sessionStorage.setItem("email",res.data.data[0].email);
+						sessionStorage.setItem("user",res.data.data[0].name);
+						sessionStorage.setItem("role",res.data.data[0].role);
 						that.$router.push({name:"main",params:{}})
 					}else{
 						alert("用户名或密码错误，请重新输入")

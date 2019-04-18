@@ -93,16 +93,7 @@
 				var that=this;
 				var reg=new RegExp(/^([a-zA-Z0-9._-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-])+/);
 				if(reg.test(this.username)){
-					this.time=false;
-					this.num=60;
-					this.timer=setInterval(()=>{
-						if(this.num==0){
-							this.time=true;
-							clearInterval(this.timer);
-						}else{
-							this.num--;
-						}
-					},1000)
+					
 					var data = Qs.stringify({
 					    email:this.username
 					});
@@ -113,8 +104,19 @@
 							console.log(res.data)
 							alert("发送成功！");
 							that.testcode=res.data.data;
+							that.time=false;
+							that.num=60;
+							that.timer=setInterval(()=>{
+								if(that.num==0){
+									that.time=true;
+									clearInterval(that.timer);
+								}else{
+									that.num--;
+								}
+							},1000)
 						}else{
 							alert("该邮箱帐号已存在！");
+							
 						}
 					})
 					.catch(function(err){

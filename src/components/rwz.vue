@@ -123,6 +123,7 @@
 				let self = this;
 				let leadername = "";
 				let membersname = [];
+				let membersemail = [];
 				for(let i = 0; i < this.leaders.length; i++) {
 					if(this.model11 == this.leaders[i].email) {
 						leadername = this.leaders[i].name
@@ -131,6 +132,7 @@
 				for(let j = 0; j < this.members.length; j++) {
 					for(let k = 0; k < this.model12.length; k++) {
 						if(this.model12[k] == this.members[j].email) {
+							membersemail.push(this.members[j].email)
 							membersname.push(this.members[j].name)
 						}
 					}
@@ -140,7 +142,7 @@
 					membersname: membersname,
 					name: this.gname,
 					leader: this.model11,
-					members: this.model12
+					members: membersemail
 				}, {
 					indices: false
 				});
@@ -290,6 +292,7 @@
 			this.$axios.post('http://127.0.0.1:2080/group/grouplist')
 				.then(function(res) {
 					if(res.data.err == 0) {
+						console.log(res.data.data)
 						self.data1 = res.data.data
 						for(let i = 0; i < self.data1.length; i++) {
 							self.data1[i].membersname = self.data1[i].membersname.join(",")

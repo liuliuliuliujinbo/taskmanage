@@ -4,17 +4,19 @@
 		<div id="rw_main">
 			<div id="rw_work">
 				<div id="rw_head">
-					<span>&emsp;当前任务列表</span>
+					
 					<span id="rw_select">
-						<Select v-model="group" style="width:200px">
-							<Option v-for="item in cityList" :value="item.value" :key="item.value">{{ item.label }}</Option>
+						&emsp;&emsp;
+						<Select v-model="group" style="width:150px">
+							<Option v-for="item in grouplist" :value="item.name" :key="item.name">{{ item.name }}</Option>
 						</Select>
 					</span>
+					<span>该组任务列表</span>
 					<span id="rw_search">
 						<Input style="width: 250px" search enter-button placeholder="输入任务描述或相关人员姓名查询" />
 					</span>
 					<span id="rw_add">
-						<Button type="primary" @click="addtask">新建任务</Button>
+						<Button type="primary" @click="faddtask">新建任务</Button>
 					</span>
 				</div>
 				<div id="rw_body" style="font-size: 16px;">
@@ -61,7 +63,7 @@
 					{
 						title: '修改记录',
 						width: 150,
-						key: 'state'
+						key: 'note'
 					},
 					{
 						title: '成果提交地址',
@@ -93,29 +95,79 @@
 						}
 					}
 				],
-				data1: [{
-					description:"asdasdbnhjfbsjdkbfueyhwbvfsdjhvbfhsjdvfhjsdgvfhgdsvfjhsdvbjhasdfhavfghsdvfghsdvf"
-				}],
+				data1: [],
 				all:0,
-				pagec:1
+				pagec:1,
+				group:"",
+				grouplist:[]
 			};
 		},
 		methods: {
 			update(){
-				
+				let that=this;
+				var data = Qs.stringify({
+					group: this.nowgroup
+				});
+				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
+					.then(function(res) {
+						if(res.data.err == 0) {
+							let da=res.data.data
+							for(let i=0;i<da.length;i++){
+								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
+								that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								let s=new Date(da[i].start).toLocaleDateString()
+								let e=new Date(da[i].end).toLocaleDateString()
+								that.data1[i].time=s+" - "+e;
+								if(da[i].note==0){
+									that.data1[i].note="未经修改";
+								}else{
+									that.data1[i].note="修改后";
+								}
+							}
+							console.log(that.data1)
+						} else {
+							alert("服务错误")
+						}
+					})
+					.catch(function(err) {
+						console.log(err);
+					});
 			},
-			addtask(){
+			faddtask(){
 				this.$store.commit('newAddtask',true);
 				document.getElementsByClassName("ivu-modal-content")[0].style.fontSize = "20px";
 			}
 		},
 		beforeCreate: function() {
-			let self = this;
+			let that = this;
 			this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 			this.$axios.post('http://127.0.0.1:2080/task/getallcount')
 				.then(function(res) {
 					if(res.data.err == 0) {
-						self.all = res.data.data;
+						that.all = res.data.data;
+					} else {
+						alert("服务错误")
+					}
+				})
+				.catch(function(err) {
+					console.log(err);
+				});
+			var data = Qs.stringify({
+				user: sessionStorage.getItem("email")
+			});
+			this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+			this.$axios.post('http://127.0.0.1:2080/group/mygroup',data)
+				.then(function(res) {
+					if(res.data.err == 0) {
+						if(res.data.data.length==0){
+							that.grouplist=[]
+						}else{
+							that.grouplist=res.data.data;
+							that.group=that.grouplist[0].name
+							that.$store.commit('newNowgroup',that.group);
+						}
+						
 					} else {
 						alert("服务错误")
 					}
@@ -127,17 +179,63 @@
 		watch: {
 			all(val, oldval) {
 				this.pagec = Math.ceil(val / 5) * 10
+			},
+			group(val, oldval){
+				let that=this;
+				var data = Qs.stringify({
+					group: val
+				});
+				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
+					.then(function(res) {
+						if(res.data.err == 0) {
+							console.log(res.data.data)
+							let da=res.data.data
+							that.data1=res.data.data
+							for(let i=0;i<da.length;i++){
+								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
+								that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								let s=new Date(da[i].start).toLocaleDateString()
+								let e=new Date(da[i].end).toLocaleDateString()
+								that.data1[i].time=s+" - "+e;
+								if(da[i].note==0){
+									that.data1[i].note="未经修改";
+								}else{
+									that.data1[i].note="修改后";
+								}
+							}
+							
+						} else {
+							alert("服务错误")
+						}
+					})
+					.catch(function(err) {
+						console.log(err);
+					});
+			},
+			addtask(val,oldval){
+				if(!val){
+					this.update();
+				}
 			}
 		},
 		computed:{
-			model2:{
+			addtask:{
 				get:function(){
-					return this.$store.state.model2;
+					return this.$store.state.addtask;
 				},
 				set: function (newValue) {
-			      	this.$store.state.model2 = newValue
+			      	this.$store.state.addtask = newValue
 			    },
-			}
+			},
+			nowgroup:{
+				get:function(){
+					return this.$store.state.nowgroup;
+				},
+				set: function (newValue) {
+			      	this.$store.state.nowgroup = newValue
+			    },
+			},
 		}
 	}
 </script>

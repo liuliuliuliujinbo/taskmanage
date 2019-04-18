@@ -12,38 +12,42 @@ router.use((req,res,next)=>{
 
 
 
-//添加任务组
+//添加任务
 router.post('/addtask',(req,res)=>{
 	var data=req.body;
-	let obj={name:data.name,leader:data.leader,member:data.members,leadername:data.leadername,membersname:data.membersname};
-	TaskModel.find({name:data.name})
+	let obj={group:data.group,incharge:data.incharge,description:data.des,join:data.join,start:data.start,end:data.end,note:data.note,address:data.address};
+	TaskModel.find({incharge:data.incharge})
 	.then((doc)=>{
-		if(doc.length!=0){
-			res.send({err:-1,msg:'任务组名已存在'});
+		let have=false;
+		let datas = new Date(data.start).getTime();
+		let datae = new Date(data.end).getTime();
+		for(let i=0;i<doc.length;i++){
+			let docs = new Date(doc[i].start).getTime();
+			let doce = new Date(doc[i].end).getTime();
+			if(docs<datas<doce||docs<datae<doce){
+				have=true;
+				break;
+			}
+		}
+		if(have){
+			res.send({err:-1,msg:"在选中时间段内该负责人已有任务，请重新选择时间"})
 		}else{
 			TaskModel.insertMany(obj)
-		    .then((doc)=>{
-		      if (doc.length==1) {
-		        res.send({err:0,msg:'注册成功'});
-		      }else{
-		        res.send({err:-1,msg:'注册失败'});
-		      }
-		    })
-		    .catch((err)=>{
-		      console.log(err);
-		    })
-		    UserModel.updateOne({email:data.leader},{role:1})
-		    .then((doc)=>{
-		      
-		    })
-		    .catch((err)=>{
-		      console.log(err);
-		    })
+			.then((doc1)=>{
+			  if (doc1.length==1) {
+			    res.send({err:0,msg:'添加成功'});
+			  }else{
+			    res.send({err:-1,msg:'添加失败'});
+			  }
+			})
+			.catch((err)=>{
+			  console.log(err);
+			})
 		}
 	})
 	.catch((err)=>{
-      console.log(err);
-    })
+	  console.log(err);
+	})
 })
 
 
@@ -60,10 +64,10 @@ router.post('/getallcount',(req,res)=>{
 })
 
 
-//获取任务组列表
-router.post('/Tasklist',(req,res)=>{
+//获取某任务组所有任务
+router.post('/alltask',(req,res)=>{
 	var data=req.body;
-    TaskModel.find().sort({_id: -1}).skip((data.page-1)*5).limit(5)
+    TaskModel.find({group:data.group}).sort({_id: -1}).skip((data.page-1)*5).limit(5)
     .then((doc)=>{
         res.send({err:0,msg:'查询成功',data:doc});
     })

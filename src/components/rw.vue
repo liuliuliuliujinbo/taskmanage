@@ -7,13 +7,13 @@
 					
 					<span id="rw_select">
 						&emsp;&emsp;
-						<Select v-model="group" style="width:150px">
+						<Select v-model="nowgroup" style="width:150px">
 							<Option v-for="item in grouplist" :value="item.name" :key="item.name">{{ item.name }}</Option>
 						</Select>
 					</span>
 					<span>该组任务列表</span>
 					<span id="rw_search">
-						<Input style="width: 250px" search enter-button placeholder="输入任务描述或相关人员姓名查询" />
+						<Input style="width: 250px" v-model="info" @on-search="search" search enter-button placeholder="输入任务描述或相关人员姓名查询" />
 					</span>
 					<span id="rw_add">
 						<Button type="primary" @click="faddtask">新建任务</Button>
@@ -21,8 +21,9 @@
 				</div>
 				<div id="rw_body" style="font-size: 16px;">
 					<Addtask></Addtask>
+					<Modifytask></Modifytask>
 					<Table border ref="selection" :columns="columns4" :data="data1"></Table>
-					<Page :total="pagec" @on-change="update" show-elevator transfer />
+					<Page :total="pagec" @on-change="updatelist" show-elevator transfer />
 				</div>
 			</div>
 		</div>
@@ -32,8 +33,9 @@
 <script>
 	import Qs from 'qs'
 	import Addtask from "../components/addtask.vue"
+	import Modifytask from "../components/modifytask.vue"
 	export default {
-		components:{Addtask},
+		components:{Addtask,Modifytask},
 		data() {
 			return {
 				columns4: [{
@@ -87,7 +89,7 @@
 									},
 									on: {
 										click: () => {
-											this.show(params.row)
+											this.show(params.index)
 										}
 									}
 								}, '修改')
@@ -96,26 +98,42 @@
 					}
 				],
 				data1: [],
+				data2: [],
 				all:0,
-				pagec:1,
+				pagec:0,
+				page:1,
 				group:"",
-				grouplist:[]
+				grouplist:[],
+				info:""
 			};
 		},
 		methods: {
-			update(){
-				let that=this;
+			updatelist(p){
+				this.page=p;
+				this.update()
+			},
+			search(){
+				this.page=1;
+				this.update()
+				/* let that=this;
 				var data = Qs.stringify({
-					group: this.nowgroup
+					info: this.info
 				});
 				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
+				this.$axios.post('http://127.0.0.1:2080/task/searchtask',data)
 					.then(function(res) {
 						if(res.data.err == 0) {
+							console.log(res.data.data)
 							let da=res.data.data
+							that.data1=res.data.data
+							that.data2=JSON.parse(JSON.stringify(da))
 							for(let i=0;i<da.length;i++){
 								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
-								that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								if(da[i].join[0]){
+									that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								}else{
+									that.data1[i].join="无"
+								}
 								let s=new Date(da[i].start).toLocaleDateString()
 								let e=new Date(da[i].end).toLocaleDateString()
 								that.data1[i].time=s+" - "+e;
@@ -124,8 +142,61 @@
 								}else{
 									that.data1[i].note="修改后";
 								}
+								if(da[i].address){
+									that.data1[i].address=da[i].address
+								}else{
+									that.data1[i].address="无"
+								}
 							}
-							console.log(that.data1)
+							
+						} else {
+							console.log(res.data.data)
+						}
+					}) */
+			},
+			show(index){
+				this.$store.commit('newModifytask',true);
+				this.$store.commit('newTask',this.data2[index]);
+				document.getElementsByClassName("ivu-modal-content")[0].style.fontSize = "20px";
+				document.getElementsByClassName("ivu-modal-content")[1].style.fontSize = "20px";
+			},
+			update(){
+				let that=this;
+				var data = Qs.stringify({
+					group: this.nowgroup,
+					page:this.page,
+					info:this.info
+				});
+				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
+					.then(function(res) {
+						if(res.data.err == 0) {
+							console.log(res.data.count)
+							that.all=res.data.count
+							let da=res.data.data
+							that.data1=res.data.data
+							that.data2=JSON.parse(JSON.stringify(da))
+							for(let i=0;i<da.length;i++){
+								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
+								if(da[i].join[0]){
+									that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								}else{
+									that.data1[i].join="无"
+								}
+								let s=new Date(da[i].start).toLocaleDateString()
+								let e=new Date(da[i].end).toLocaleDateString()
+								that.data1[i].time=s+" - "+e;
+								if(da[i].note==0){
+									that.data1[i].note="未经修改";
+								}else{
+									that.data1[i].note="修改后";
+								}
+								if(da[i].address){
+									that.data1[i].address=da[i].address
+								}else{
+									that.data1[i].address="无"
+								}
+							}
 						} else {
 							alert("服务错误")
 						}
@@ -139,7 +210,7 @@
 				document.getElementsByClassName("ivu-modal-content")[0].style.fontSize = "20px";
 			}
 		},
-		beforeCreate: function() {
+		mounted: function() {
 			let that = this;
 			this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 			this.$axios.post('http://127.0.0.1:2080/task/getallcount')
@@ -164,8 +235,8 @@
 							that.grouplist=[]
 						}else{
 							that.grouplist=res.data.data;
-							that.group=that.grouplist[0].name
-							that.$store.commit('newNowgroup',that.group);
+							that.nowgroup=that.grouplist[0].name
+							that.$store.commit('newNowgroup',that.nowgroup);
 						}
 						
 					} else {
@@ -175,26 +246,32 @@
 				.catch(function(err) {
 					console.log(err);
 				});
+			this.update()
 		},
 		watch: {
 			all(val, oldval) {
 				this.pagec = Math.ceil(val / 5) * 10
 			},
-			group(val, oldval){
+			nowgroup(val, oldval){
 				let that=this;
 				var data = Qs.stringify({
-					group: val
+					group: val,
+					page:this.page
 				});
 				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
 					.then(function(res) {
 						if(res.data.err == 0) {
-							console.log(res.data.data)
 							let da=res.data.data
 							that.data1=res.data.data
+							that.data2=JSON.parse(JSON.stringify(da))
 							for(let i=0;i<da.length;i++){
 								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
-								that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								if(da[i].join[0]){
+									that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
+								}else{
+									that.data1[i].join="无"
+								}
 								let s=new Date(da[i].start).toLocaleDateString()
 								let e=new Date(da[i].end).toLocaleDateString()
 								that.data1[i].time=s+" - "+e;
@@ -202,6 +279,11 @@
 									that.data1[i].note="未经修改";
 								}else{
 									that.data1[i].note="修改后";
+								}
+								if(da[i].address){
+									that.data1[i].address=da[i].address
+								}else{
+									that.data1[i].address="无"
 								}
 							}
 							
@@ -215,6 +297,7 @@
 			},
 			addtask(val,oldval){
 				if(!val){
+					console.log(val)
 					this.update();
 				}
 			}

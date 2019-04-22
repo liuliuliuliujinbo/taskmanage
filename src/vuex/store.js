@@ -12,13 +12,20 @@ const store = new Vuex.Store({
 	    members:[],
 	    model2:false,
 		addtask:false,
-		nowgroup:""
+		nowgroup:"",
+		modifytask:false,
+		task:{}
 	},
 	mutations:{
 	  	newActive(state,msg){
 	  		state.active=msg;
 	  	},
-		
+		newModifytask(state,msg){
+			state.modifytask=msg;
+		},
+		newTask(state,msg){
+			state.task=msg;
+		},
 	  	newGroup(state,msg){
 	  		state.modifygroup=msg;
 	  	},

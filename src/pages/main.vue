@@ -24,6 +24,7 @@
 			
 		},
 		mounted(){
+			this.$store.commit('newActive',1);
 			if(sessionStorage.getItem("user")==""||sessionStorage.getItem("user")==null){
 				alert("请先登录 ")
 				this.$router.push({name:"login",params:{}})

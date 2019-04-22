@@ -19,12 +19,12 @@ router.post('/addtask',(req,res)=>{
 	TaskModel.find({incharge:data.incharge})
 	.then((doc)=>{
 		let have=false;
-		let datas = new Date(data.start).getTime();
-		let datae = new Date(data.end).getTime();
+		let datas = parseInt(new Date(data.start).getTime());
+		let datae = parseInt(new Date(data.end).getTime());
 		for(let i=0;i<doc.length;i++){
-			let docs = new Date(doc[i].start).getTime();
-			let doce = new Date(doc[i].end).getTime();
-			if(docs<datas<doce||docs<datae<doce){
+			let docs = parseInt(new Date(doc[i].start).getTime());
+			let doce = parseInt(new Date(doc[i].end).getTime());
+			if((docs<datas&&datas<doce)||(docs<datae&&datae<doce)){
 				have=true;
 				break;
 			}
@@ -67,34 +67,31 @@ router.post('/getallcount',(req,res)=>{
 //获取某任务组所有任务
 router.post('/alltask',(req,res)=>{
 	var data=req.body;
-    TaskModel.find({group:data.group}).sort({_id: -1}).skip((data.page-1)*5).limit(5)
-    .then((doc)=>{
-        res.send({err:0,msg:'查询成功',data:doc});
-    })
+	var query= new RegExp(data.info, 'i');
+	TaskModel.count({$and:[{group:data.group},{description: {'$regex': query}}]})
+	.then((doc1)=>{
+		TaskModel.find({$and:[{group:data.group},{description: {'$regex': query}}]}).sort({_id: -1}).skip((data.page-1)*5).limit(5)
+		.then((doc)=>{
+		    res.send({err:0,msg:'查询成功',data:doc,count:doc1});
+		})
+		.catch((err)=>{
+		  res.send({err:-1,msg:'查询失败',data:err});
+		})
+	})
     .catch((err)=>{
       console.log(err);
     })
 })
 
 
-//删除任务组
-router.post('/deleteTask',(req,res)=>{
-	var data=req.body;
-    TaskModel.deleteMany({name:{$in:data.names}})
-    .then((doc)=>{
-        res.send({err:0,msg:'删除成功',data:doc});
-    })
-    .catch((err)=>{
-      console.log(err);
-    })
-})
 
-
-//修改任务组
-router.post('/modifyTask',(req,res)=>{
+//修改任务
+router.post('/modifytask',(req,res)=>{
 	var data=req.body;
-    TaskModel.update({name:data.name},{leader:data.leader,member:data.members,leadername:data.leadername,membersname:data.membersname})
+	let obj={group:data.group,incharge:data.incharge,description:data.des,join:data.join,start:data.start,end:data.end,note:data.note,address:data.address};
+    TaskModel.update({_id:data._id},{note:1})
     .then((doc)=>{
+		
         res.send({err:0,msg:'修改成功',data:doc});
     })
     .catch((err)=>{
@@ -102,31 +99,6 @@ router.post('/modifyTask',(req,res)=>{
     })
 })
 
-
-//模糊查询任务组组长
-router.post('/searchleader',(req,res)=>{
-	UserModel.find()
-	.then((resolve)=>{
-		res.send({err:0,msg:'queryDesc success',data:resolve});
-	})
-	.catch((reject)=>{
-		res.send({err:-1,msg:'queryDesc failed',data:reject});
-	})
-})
-
-
-//模糊查询任务组成员
-router.post('/searchmember',(req,res)=>{
-	var data=req.body;
-	var rega = new RegExp(data.name);
-	UserModel.find({role:2})
-	.then((resolve)=>{
-		res.send({err:0,msg:'queryDesc success',data:resolve});
-	})
-	.catch((reject)=>{
-		res.send({err:-1,msg:'queryDesc failed',data:reject});
-	})
-})
 
 
 

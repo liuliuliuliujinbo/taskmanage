@@ -58,13 +58,13 @@
 						key: 'join'
 					},
 					{
-						title: '任务起止时间',
-						width: 200,
+						title: '起止时间',
+						width: 100,
 						key: 'time'
 					},
 					{
 						title: '修改记录',
-						width: 150,
+						width: 100,
 						key: 'note'
 					},
 					{
@@ -73,12 +73,33 @@
 						key: 'address'
 					},
 					{
+						title: '完成状态',
+						width: 100,
+						key: 'state'
+					},
+					{
 						title: '操作',
 						key: 'action',
-						width: 100,
+						width: 150,
 						align: 'center',
 						render: (h, params) => {
+							let that=this;
 							return h('div', [
+								h('Button', {
+									props: {
+										type: 'error',
+										size: 'small',
+										disabled: params.row.state=="未完成" ? true : false
+									},
+									style: {
+										marginRight: '5px'
+									},
+									on: {
+										click: () => {
+											this.modifystate(params.row)
+										}
+									}
+								}, '未完成'),
 								h('Button', {
 									props: {
 										type: 'primary',
@@ -115,44 +136,27 @@
 			search(){
 				this.page=1;
 				this.update()
-				/* let that=this;
+			},
+			modifystate(info){
+				let that=this;
 				var data = Qs.stringify({
-					info: this.info
+					id:info._id,
+					state:0,
+					incharge:info.incharge
 				});
 				this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-				this.$axios.post('http://127.0.0.1:2080/task/searchtask',data)
+				this.$axios.post('http://127.0.0.1:2080/task/modifystate',data)
 					.then(function(res) {
 						if(res.data.err == 0) {
-							console.log(res.data.data)
-							let da=res.data.data
-							that.data1=res.data.data
-							that.data2=JSON.parse(JSON.stringify(da))
-							for(let i=0;i<da.length;i++){
-								that.data1[i].incharge=da[i].incharge[1]+" - "+da[i].incharge[0];
-								if(da[i].join[0]){
-									that.data1[i].join=da[i].join[1]+" - "+da[i].join[0];
-								}else{
-									that.data1[i].join="无"
-								}
-								let s=new Date(da[i].start).toLocaleDateString()
-								let e=new Date(da[i].end).toLocaleDateString()
-								that.data1[i].time=s+" - "+e;
-								if(da[i].note==0){
-									that.data1[i].note="未经修改";
-								}else{
-									that.data1[i].note="修改后";
-								}
-								if(da[i].address){
-									that.data1[i].address=da[i].address
-								}else{
-									that.data1[i].address="无"
-								}
-							}
-							
+							alert("修改成功，已通知该任务负责人")
+							that.update()
 						} else {
-							console.log(res.data.data)
+							alert("服务错误")
 						}
-					}) */
+					})
+					.catch(function(err) {
+						console.log(err);
+					});
 			},
 			show(index){
 				this.$store.commit('newModifytask',true);
@@ -171,7 +175,6 @@
 				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
 					.then(function(res) {
 						if(res.data.err == 0) {
-							console.log(res.data.count)
 							that.all=res.data.count
 							let da=res.data.data
 							that.data1=res.data.data
@@ -189,12 +192,17 @@
 								if(da[i].note==0){
 									that.data1[i].note="未经修改";
 								}else{
-									that.data1[i].note="修改后";
+									that.data1[i].note="已修改";
 								}
 								if(da[i].address){
 									that.data1[i].address=da[i].address
 								}else{
 									that.data1[i].address="无"
+								}
+								if(da[i].state==1){
+									that.data1[i].state="已完成"
+								}else{
+									that.data1[i].state="未完成"
 								}
 							}
 						} else {
@@ -262,6 +270,7 @@
 				this.$axios.post('http://127.0.0.1:2080/task/alltask',data)
 					.then(function(res) {
 						if(res.data.err == 0) {
+							that.all=res.data.count
 							let da=res.data.data
 							that.data1=res.data.data
 							that.data2=JSON.parse(JSON.stringify(da))
@@ -278,12 +287,17 @@
 								if(da[i].note==0){
 									that.data1[i].note="未经修改";
 								}else{
-									that.data1[i].note="修改后";
+									that.data1[i].note="已修改";
 								}
 								if(da[i].address){
 									that.data1[i].address=da[i].address
 								}else{
 									that.data1[i].address="无"
+								}
+								if(da[i].state==1){
+									that.data1[i].state="已完成"
+								}else{
+									that.data1[i].state="未完成"
 								}
 							}
 							

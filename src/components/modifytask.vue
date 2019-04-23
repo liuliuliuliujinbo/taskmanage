@@ -46,16 +46,16 @@
 		},
 		methods: {
 			mtok() {
-				if(this.des&&this.incharge&&this.time0){
+				if(this.des){
 					let data=Qs.stringify({
-							des: this.des,
+							newdes: this.des,
+							olddes:this.task.description,
 							incharge:this.task.incharge,
 							join:this.task.join,
-							start:this.task.time0[0],
-							end:this.task.time0[1],
-							note:0,
-							address:this.task.address,
-							group:this.task.nowgroup,
+							start:this.task.start,
+							end:this.task.end,
+							address:this.taddress,
+							group:this.task.group,
 							old:this.task._id
 						}, {
 							arrayFormat: 'repeat'
@@ -65,8 +65,8 @@
 					this.$axios.post('http://127.0.0.1:2080/task/modifytask', data)
 						.then(function(res) {
 							if(res.data.err == 0) {
-								alert("添加成功")
-								that.$store.commit('newAddtask',false);
+								alert("修改成功")
+								that.$store.commit('newModifytask',false);
 							} else {
 								alert(res.data.msg)
 							}

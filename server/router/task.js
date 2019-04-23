@@ -3,6 +3,7 @@ let router=express.Router();
 const fs=require('fs');
 const path=require('path');
 let TaskModel=require("../model/model_task.js");
+let LogModel=require("../model/model_log.js");
 let UserModel=require("../model/model_user.js");
 let multer=require("multer")
 
@@ -15,7 +16,7 @@ router.use((req,res,next)=>{
 //添加任务
 router.post('/addtask',(req,res)=>{
 	var data=req.body;
-	let obj={group:data.group,incharge:data.incharge,description:data.des,join:data.join,start:data.start,end:data.end,note:data.note,address:data.address};
+	let obj={group:data.group,incharge:data.incharge,description:data.des,join:data.join,start:data.start,end:data.end,note:data.note,address:data.address,state:0};
 	TaskModel.find({incharge:data.incharge})
 	.then((doc)=>{
 		let have=false;
@@ -88,10 +89,44 @@ router.post('/alltask',(req,res)=>{
 //修改任务
 router.post('/modifytask',(req,res)=>{
 	var data=req.body;
-	let obj={group:data.group,incharge:data.incharge,description:data.des,join:data.join,start:data.start,end:data.end,note:data.note,address:data.address};
-    TaskModel.update({_id:data._id},{note:1})
+	let obj={group:data.group,incharge:data.incharge,description:data.newdes,join:data.join,start:data.start,end:data.end,note:0,address:data.address,state:0};
+    TaskModel.update({_id:data.old},{note:1})
     .then((doc)=>{
-		
+		TaskModel.insertMany(obj)
+		.then((doc1)=>{
+		  if (doc1.length==1) {
+			  let t=new Date();
+			  LogModel.insertMany({group:data.group,incharge:data.incharge,oldtask:data.old,olddes:data.olddes,newtask:doc1._id,newdes:data.newdes,time:t})
+			  .then((doc2)=>{
+				  if (doc2.length==1) {
+					res.send({err:0,msg:'修改成功'});
+				  }else{
+					  res.send({err:-1,msg:'修改失败'});
+				  }
+			  })
+			  .catch((err)=>{
+			    console.log(err);
+			  })
+		    
+		  }else{
+		    res.send({err:-1,msg:'添加失败'});
+		  }
+		})
+		.catch((err)=>{
+		  console.log(err);
+		})
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+})
+
+
+//修改任务完成状态
+router.post('/modifystate',(req,res)=>{
+	var data=req.body;
+    TaskModel.update({_id:data.id},{state:data.state})
+    .then((doc)=>{
         res.send({err:0,msg:'修改成功',data:doc});
     })
     .catch((err)=>{

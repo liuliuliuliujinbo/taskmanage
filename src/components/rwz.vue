@@ -292,7 +292,6 @@
 			this.$axios.post('http://127.0.0.1:2080/group/grouplist')
 				.then(function(res) {
 					if(res.data.err == 0) {
-						console.log(res.data.data)
 						self.data1 = res.data.data
 						for(let i = 0; i < self.data1.length; i++) {
 							self.data1[i].membersname = self.data1[i].membersname.join(",")

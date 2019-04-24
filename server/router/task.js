@@ -6,6 +6,7 @@ let TaskModel=require("../model/model_task.js");
 let LogModel=require("../model/model_log.js");
 let UserModel=require("../model/model_user.js");
 let multer=require("multer")
+const mongoose= require('mongoose');
 
 router.use((req,res,next)=>{
 	next();
@@ -95,8 +96,9 @@ router.post('/modifytask',(req,res)=>{
 		TaskModel.insertMany(obj)
 		.then((doc1)=>{
 		  if (doc1.length==1) {
+			  console.log(doc1[0]._id)
 			  let t=new Date();
-			  LogModel.insertMany({group:data.group,incharge:data.incharge,oldtask:data.old,olddes:data.olddes,newtask:doc1._id,newdes:data.newdes,time:t})
+			  LogModel.insertMany({group:data.group,incharge:data.incharge,oldtask:data.old,olddes:data.olddes,newtask:doc1[0]._id,newdes:data.newdes,time:t})
 			  .then((doc2)=>{
 				  if (doc2.length==1) {
 					res.send({err:0,msg:'修改成功'});
@@ -135,6 +137,37 @@ router.post('/modifystate',(req,res)=>{
 })
 
 
+//获取某任务组所有任务
+router.post('/alllog',(req,res)=>{
+	var data=req.body;
+	var query= new RegExp(data.info, 'i');
+	LogModel.count({$and:[{group:data.group},{$or:[{olddes:{'$regex': query}},{newdes:{'$regex': query}}]}]})
+	.then((doc1)=>{
+		LogModel.find({$and:[{group:data.group},{$or:[{olddes:{'$regex': query}},{newdes:{'$regex': query}}]}]}).sort({_id: -1}).skip((data.page-1)*5).limit(5)
+		.then((doc)=>{
+		    res.send({err:0,msg:'查询成功',data:doc,count:doc1});
+		})
+		.catch((err)=>{
+		  res.send({err:-1,msg:'查询失败',data:err});
+		})
+	})
+    .catch((err)=>{
+      console.log(err);
+    })
+})
+
+
+//通过id查找某一任务
+router.post('/findtask',(req,res)=>{
+	var data=req.body;
+    TaskModel.findById({'_id':data.id})
+    .then((doc)=>{
+        res.send({err:0,msg:'查询成功',data:doc});
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+})
 
 
 module.exports = router;

@@ -13,7 +13,7 @@
 					</span>
 					<span>该组任务列表</span>
 					<span id="rw_search">
-						<Input style="width: 250px" v-model="info" @on-search="search" search enter-button placeholder="输入任务描述或相关人员姓名查询" />
+						<Input style="width: 250px" v-model="info" @on-search="search" search enter-button placeholder="输入任务描述进行查询" />
 					</span>
 					<span id="rw_add">
 						<Button type="primary" @click="faddtask">新建任务</Button>
@@ -103,7 +103,8 @@
 								h('Button', {
 									props: {
 										type: 'primary',
-										size: 'small'
+										size: 'small',
+										disabled: (params.row.note=="已修改")||(params.row.state=="已完成") ? true : false
 									},
 									style: {
 										marginRight: '5px'
@@ -311,7 +312,11 @@
 			},
 			addtask(val,oldval){
 				if(!val){
-					console.log(val)
+					this.update();
+				}
+			},
+			modifytask(val,oldval){
+				if(!val){
 					this.update();
 				}
 			}
@@ -323,6 +328,14 @@
 				},
 				set: function (newValue) {
 			      	this.$store.state.addtask = newValue
+			    },
+			},
+			modifytask:{
+				get:function(){
+					return this.$store.state.modifytask;
+				},
+				set: function (newValue) {
+			      	this.$store.state.modifytask = newValue
 			    },
 			},
 			nowgroup:{

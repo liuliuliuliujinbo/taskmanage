@@ -6,6 +6,8 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
 	// 定义状态
 	state: {
+		more:false,
+		log:{},
 	    active: 1,
 	    modifygroup:{},
 	    leaders:[],
@@ -22,6 +24,12 @@ const store = new Vuex.Store({
 	  	},
 		newModifytask(state,msg){
 			state.modifytask=msg;
+		},
+		newMore(state,msg){
+			state.more=msg;
+		},
+		newLog(state,msg){
+			state.log=msg;
 		},
 		newTask(state,msg){
 			state.task=msg;

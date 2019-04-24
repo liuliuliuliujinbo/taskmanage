@@ -10,7 +10,9 @@
 				<Input type="text" v-model="tincharge" disabled style="width: 250px" />
 				<br /><br /><br />
 				&emsp;&emsp;参与人 ：
-				<Input type="text" v-model="tjoin" disabled style="width: 250px" />
+				<Select v-model="tjoin" style="width:250px" clearable ref="join">
+					<Option v-for="item in joins" :value="item.email" :key="item.email">{{ item.name }} - {{item.email}}</Option>
+				</Select>
 				<br /><br /><br />
 				&emsp;起止时间 ：
 				<Input type="text" v-model="ttime" disabled style="width: 250px" />
@@ -41,17 +43,25 @@
 				ttime:'',
 				tincharge:'',
 				tjoin:'',
+				joins:[],
 				taddress:''
 			};
 		},
 		methods: {
 			mtok() {
 				if(this.des){
+					let thejoin=[];
+					for(let i=0;i<this.joins.length;i++){
+						if(this.joins[i].email==this.tjoin){
+							thejoin.push(this.joins[i].email)
+							thejoin.push(this.joins[i].name)
+						}
+					}
 					let data=Qs.stringify({
 							newdes: this.des,
 							olddes:this.task.description,
 							incharge:this.task.incharge,
-							join:this.task.join,
+							join:thejoin,
 							start:this.task.start,
 							end:this.task.end,
 							address:this.taddress,
@@ -87,13 +97,33 @@
 		},
 		watch:{
 			modifytask(val,oldval){
+				this.joins.length=0;
 				if(val){
-					console.log(this.task)
+					let that=this;
 					this.tincharge=this.task.incharge[1]+" - "+this.task.incharge[0]
-					this.tjoin=this.task.join[1]+" - "+this.task.join[0]
+					this.tjoin=this.task.join[0]
 					this.ttime=new Date(this.task.start).toLocaleDateString()+" - "+new Date(this.task.end).toLocaleDateString()
 					this.des=this.task.description
 					this.taddress=this.task.address
+					let data=Qs.stringify({
+							group: this.nowgroup
+						});
+					this.$axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+					this.$axios.post('http://127.0.0.1:2080/group/getmembers', data)
+						.then(function(res) {
+							if(res.data.err == 0) {
+								for(let i=0;i<res.data.data[0].member.length;i++){
+									if(res.data.data[0].member[i]!=that.task.incharge[0]){
+										that.joins.push({email:res.data.data[0].member[i],name:res.data.data[0].membersname[i]})
+									}
+								}
+							} else {
+								alert(res.data.msg)
+							}
+						})
+						.catch(function(err) {
+							console.log(err);
+						});
 				}
 			}
 		},
@@ -112,6 +142,14 @@
 				},
 				set: function (newValue) {
 			      	this.$store.state.task = newValue
+			    }
+			},
+			nowgroup:{
+				get:function(){
+					return this.$store.state.nowgroup;
+				},
+				set: function (newValue) {
+			      	this.$store.state.nowgroup = newValue
 			    }
 			}
 		}
